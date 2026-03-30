@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>越南语词汇挑战</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+@keyframes correctBounce { 0% { transform: scale(1); } 50% { transform: scale(1.15); background: linear-gradient(135deg, #10b981, #059669); } 100% { transform: scale(1); background: linear-gradient(135deg, #10b981, #059669); } }
+@keyframes scoreUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-60px) scale(1.8); opacity: 0; } }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); } 50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.8); } }
+.fade-in { animation: fadeIn 0.6s ease-out; }
+.pulse { animation: pulse 0.6s ease-in-out; }
+.shake { animation: shake 0.5s ease-in-out; }
+.correct-bounce { animation: correctBounce 0.6s ease-out; }
+.score-up { animation: scoreUp 1s ease-out; position: absolute; color: #10b981; font-size: 4rem; font-weight: bold; pointer-events: none; text-shadow: 0 0 20px rgba(16, 185, 129, 0.8); }
+.glow { animation: glow 2s ease-in-out infinite; }
+body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1), transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.08), transparent 50%); pointer-events: none; }
+</style>
+</head>
+<body class="flex items-center justify-center p-4">
+<div class="max-w-4xl w-full relative z-10">
+<!-- 欢迎页面 -->
+<div id="welcomeScreen" class="bg-white/10 backdrop-blur-xl rounded-3xl p-10 shadow-2xl fade-in border-2 border-white/20">
+<div class="text-center mb-8">
+<div class="text-7xl mb-4">🇻🇳</div>
+<h1 class="text-6xl font-bold text-white mb-3 drop-shadow-lg">越南语词汇挑战</h1>
+<p class="text-2xl text-white/90">共62个词汇 · 分两关完成</p>
+</div>
+<div class="max-w-md mx-auto bg-white/20 backdrop-blur-lg rounded-2xl p-8 border border-white/30">
+<label class="block text-xl font-bold text-white mb-3">请输入你的姓名</label>
+<input type="text" id="nameInput" class="w-full px-5 py-4 text-xl border-2 border-white/50 rounded-xl focus:border-white focus:outline-none bg-white/90 mb-5 font-semibold" placeholder="输入姓名">
+<button onclick="startGame()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-5 rounded-xl font-bold text-2xl hover:from-purple-600 hover:to-pink-600 transition-all hover:scale-105 shadow-xl glow">
+开始挑战 →
+</button>
+</div>
+</div>
+
+<!-- 选择关卡页面 -->
+<div id="levelScreen" class="hidden bg-white/10 backdrop-blur-xl rounded-3xl p-10 shadow-2xl fade-in border-2 border-white/20">
+<h2 class="text-5xl font-bold text-center mb-3 text-white drop-shadow-lg">选择关卡</h2>
+<p class="text-center text-white/90 text-xl mb-8">学生：<span id="playerName" class="font-bold text-yellow-300"></span></p>
+<div class="grid grid-cols-2 gap-8 max-w-2xl mx-auto">
+<button onclick="selectLevel(1)" class="bg-gradient-to-br from-blue-400 to-cyan-500 text-white p-10 rounded-3xl shadow-2xl hover:scale-105 transition-all border-2 border-white/30">
+<div class="text-7xl mb-4">1️⃣</div>
+<div class="text-3xl font-bold mb-2">关卡一</div>
+<div class="text-xl opacity-90">31个词汇</div>
+<div id="level1Status" class="mt-3 text-lg font-bold"></div>
+</button>
+<button onclick="selectLevel(2)" class="bg-gradient-to-br from-pink-400 to-rose-500 text-white p-10 rounded-3xl shadow-2xl hover:scale-105 transition-all border-2 border-white/30">
+<div class="text-7xl mb-4">2️⃣</div>
+<div class="text-3xl font-bold mb-2">关卡二</div>
+<div class="text-xl opacity-90">31个词汇</div>
+<div id="level2Status" class="mt-3 text-lg font-bold"></div>
+</button>
+</div>
+</div>
+
+<!-- 游戏页面 -->
+<div id="gameScreen" class="hidden bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl fade-in border-2 border-white/20 relative">
+<div class="flex justify-between items-center mb-6 text-white">
+<div class="text-2xl font-bold">关卡 <span id="currentLevel"></span></div>
+<div class="text-2xl font-bold">题目 <span id="questionNum"></span>/31</div>
+<div class="text-4xl font-bold glow" id="timer">5</div>
+</div>
+<div class="bg-white/20 backdrop-blur-lg rounded-2xl p-10 mb-6 text-center border border-white/30">
+<div class="text-xl text-white/80 mb-3" id="direction"></div>
+<div class="text-5xl font-bold text-white mb-8 drop-shadow-lg" id="question"></div>
+<div class="grid grid-cols-2 gap-4" id="options"></div>
+</div>
+<div class="text-center text-white text-2xl">
+得分：<span id="score" class="text-4xl font-bold text-yellow-300 drop-shadow-lg">0</span> / 31
+</div>
+</div>
+
+<!-- 结果页面 -->
+<div id="resultScreen" class="hidden bg-white/10 backdrop-blur-xl rounded-3xl p-10 shadow-2xl fade-in text-center border-2 border-white/20">
+<div class="text-8xl mb-6">🎉</div>
+<h2 class="text-5xl font-bold mb-4 text-white drop-shadow-lg" id="resultTitle"></h2>
+<p class="text-3xl mb-8 text-white/90">得分：<span id="finalScore" class="font-bold text-yellow-300"></span> / 31</p>
+<div id="nextLevelBtn" class="hidden mb-6">
+<button onclick="goToLevelSelect()" class="bg-gradient-to-r from-green-400 to-emerald-500 text-white px-10 py-5 rounded-2xl font-bold text-2xl hover:from-green-500 hover:to-emerald-600 transition-all hover:scale-105 shadow-xl">
+挑战关卡二 →
+</button>
+</div>
+<div id="completeMsg" class="hidden text-2xl text-green-300 font-bold mb-6 drop-shadow-lg">
+✓ 已覆盖全部62个词汇！
+</div>
+<button onclick="location.reload()" class="bg-white/20 text-white px-10 py-5 rounded-2xl font-bold text-2xl hover:bg-white/30 transition-all hover:scale-105 shadow-xl border border-white/30">
+返回首页
+</button>
+</div>
+
+</div>
+<script>
+const allWords = [
+  { vi: "xì dầu", cn: "酱油" }, { vi: "giảm giá", cn: "打折" }, { vi: "khuyến mại", cn: "促销" },
+  { vi: "quét mã", cn: "扫码" }, { vi: "thẻ hội viên", cn: "会员卡" }, { vi: "ưu đãi", cn: "优惠" },
+  { vi: "tờ khai", cn: "申请表" }, { vi: "đặc sản", cn: "特产" }, { vi: "hoa quả sấy", cn: "果干" },
+  { vi: "hạt điều", cn: "腰果" }, { vi: "thời gian làm việc", cn: "营业时间" }, { vi: "xách", cn: "提" },
+  { vi: "xe đẩy", cn: "手推车" }, { vi: "làn đựng đồ", cn: "购物篮" }, { vi: "tủ gửi đồ", cn: "存物柜" },
+  { vi: "gửi", cn: "存放" }, { vi: "quầy phục vụ", cn: "服务台" }, { vi: "túi bóng", cn: "塑料袋" },
+  { vi: "miễn phí", cn: "免费" }, { vi: "mặt hàng", cn: "商品" }, { vi: "áo khoác", cn: "外套" },
+  { vi: "cỡ", cn: "码数" }, { vi: "kho", cn: "仓库" }, { vi: "kính râm", cn: "遮阳镜" },
+  { vi: "nhãn hiệu", cn: "品牌，牌子" }, { vi: "kem chống nắng", cn: "防晒霜" }, { vi: "xịt", cn: "喷" },
+  { vi: "chức năng", cn: "功能" }, { vi: "tư vấn", cn: "咨询" }, { vi: "thanh toán", cn: "结账" },
+  { vi: "khu ăn uống", cn: "餐饮区" }, { vi: "đồ ăn vặt", cn: "零食" }, { vi: "thịt ba chỉ", cn: "五花肉" },
+  { vi: "nhân tiện", cn: "顺便" }, { vi: "giá hàng", cn: "货架" }, { vi: "khó quên", cn: "难忘" },
+  { vi: "quẹt thẻ", cn: "刷卡" }, { vi: "tiền mặt", cn: "现金" }, { vi: "xác nhận", cn: "确认" },
+  { vi: "số tiền", cn: "金额" }, { vi: "nhập mật khẩu", cn: "输入密码" }, { vi: "hóa đơn", cn: "（购物）小票" },
+  { vi: "phố đi bộ", cn: "步行街" }, { vi: "cổng chính", cn: "正门" }, { vi: "cầu vượt", cn: "立交桥" },
+  { vi: "mỹ phẩm", cn: "护肤品" }, { vi: "cửa vào", cn: "入口" }, { vi: "thang máy", cn: "电梯" },
+  { vi: "đồ dùng hằng ngày", cn: "日用品" }, { vi: "găng tay", cn: "手套" }, { vi: "quần giữ nhiệt", cn: "保暖裤" },
+  { vi: "lạnh giá", cn: "（天气）冷" }, { vi: "hơn thế nữa", cn: "更何况" }, { vi: "rõ rệt", cn: "明显" },
+  { vi: "tương đối", cn: "比较" }, { vi: "mát mẻ", cn: "凉快" }, { vi: "nóng bức", cn: "炎热" },
+  { vi: "dép lê", cn: "拖鞋" }, { vi: "xăng đan", cn: "凉鞋" }, { vi: "đệm điện", cn: "电热毯" },
+  { vi: "thảm nhung", cn: "毛毯" }, { vi: "cắm điện", cn: "插电" }
+];
+
+const validStudents = [
+  "陈延豪", "杨紫艺", "陈芝颖", "王丽云", "陈静茹", "江清兰", "于秀平", "刘羽双",
+  "李瑶菲", "莫雨亭", "黄欣婷", "姚雲", "韦玉荣", "陈尘渝", "郑凯丹", "莫庆玲",
+  "玉爱羡", "李雨薇", "刘瑞芹", "吴姜宁", "李胜悦", "李辛欣", "李若搴", "钟霆欢",
+  "严凯凤", "冯嘉欣", "田福乐", "覃慧莹", "翁生德", "吕月", "黄嘉豪", "沈雨纯",
+  "林晓云", "谭刚志", "邹美慧", "宋宇翔", "刘籽兰", "杨瑀璇", "莫志胜", "黄永贵",
+  "谢伊蕾", "郑翔仁", "汪洋暘", "杨哲希", "钟景杰", "蒋宇翔"
+];
+
+const state = { playerName: '', currentLevel: 0, level1Words: [], level2Words: [], currentQuestions: [], currentQ: 0, score: 0, timer: 5, timerInterval: null, audioCtx: null };
+
+function initAudio() {
+  if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playSound(freq, duration = 0.1) {
+  if (!state.audioCtx) return;
+  const osc = state.audioCtx.createOscillator();
+  const gain = state.audioCtx.createGain();
+  osc.connect(gain).connect(state.audioCtx.destination);
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.1, state.audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, state.audioCtx.currentTime + duration);
+  osc.start();
+  osc.stop(state.audioCtx.currentTime + duration);
+}
+
+function shuffle(arr) { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function initWords() {
+  const shuffled = shuffle(allWords);
+  state.level1Words = shuffled.slice(0, 31);
+  state.level2Words = shuffled.slice(31, 62);
+  localStorage.setItem('level1Words', JSON.stringify(state.level1Words));
+  localStorage.setItem('level2Words', JSON.stringify(state.level2Words));
+}
+
+function startGame() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) { alert('请输入姓名'); return; }
+  if (!validStudents.includes(name)) { alert('姓名不在班级名单中'); return; }
+  
+  initAudio();
+  playSound(800, 0.15);
+  state.playerName = name;
+  
+  if (!localStorage.getItem('level1Words')) initWords();
+  else { state.level1Words = JSON.parse(localStorage.getItem('level1Words')); state.level2Words = JSON.parse(localStorage.getItem('level2Words')); }
+  
+  document.getElementById('playerName').textContent = name;
+  updateLevelStatus();
+  showScreen('levelScreen');
+}
+
+function updateLevelStatus() {
+  const l1 = localStorage.getItem('level1Done') === 'true';
+  const l2 = localStorage.getItem('level2Done') === 'true';
+  document.getElementById('level1Status').textContent = l1 ? '✓ 已完成' : '';
+  document.getElementById('level2Status').textContent = l2 ? '✓ 已完成' : '';
+}
+
+function showScreen(id) {
+  ['welcomeScreen', 'levelScreen', 'gameScreen', 'resultScreen'].forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function selectLevel(level) {
+  if (localStorage.getItem(`level${level}Done`) === 'true') { alert(`关卡${level}已完成`); return; }
+  
+  playSound(1000, 0.15);
+  state.currentLevel = level;
+  state.score = 0;
+  state.currentQ = 0;
+  
+  const words = level === 1 ? state.level1Words : state.level2Words;
+  state.currentQuestions = words.map(w => {
+    const dir = Math.random() > 0.5 ? 'cn2vi' : 'vi2cn';
+    const correct = dir === 'cn2vi' ? w.vi : w.cn;
+    const wrong = shuffle(allWords.filter(x => x !== w)).slice(0, 3).map(x => dir === 'cn2vi' ? x.vi : x.cn);
+    return { question: dir === 'cn2vi' ? w.cn : w.vi, direction: dir === 'cn2vi' ? '中文 → 越南语' : '越南语 → 中文', options: shuffle([correct, ...wrong]), correctAnswer: correct };
+  });
+  
+  showScreen('gameScreen');
+  showQuestion();
+}
+
+function showQuestion() {
+  if (state.currentQ >= 31) { endLevel(); return; }
+  
+  const q = state.currentQuestions[state.currentQ];
+  document.getElementById('currentLevel').textContent = state.currentLevel;
+  document.getElementById('questionNum').textContent = state.currentQ + 1;
+  document.getElementById('direction').textContent = q.direction;
+  document.getElementById('question').textContent = q.question;
+  document.getElementById('score').textContent = state.score;
+  
+  const html = q.options.map(opt => `<button onclick="selectAnswer('${opt.replace(/'/g, "\\'")}', event)" class="bg-white/90 hover:bg-white border-2 border-purple-300 hover:border-purple-500 p-5 rounded-xl text-xl font-bold transition-all hover:scale-105 shadow-lg">${opt}</button>`).join('');
+  document.getElementById('options').innerHTML = html;
+  
+  state.timer = 5;
+  const timerEl = document.getElementById('timer');
+  timerEl.textContent = state.timer;
+  timerEl.className = 'text-4xl font-bold glow text-green-400';
+  
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.timer--;
+    timerEl.textContent = state.timer;
+    if (state.timer <= 2) { timerEl.className = 'text-4xl font-bold glow text-red-400 pulse'; playSound(600, 0.08); }
+    if (state.timer <= 0) { clearInterval(state.timerInterval); nextQuestion(); }
+  }, 1000);
+}
+
+function selectAnswer(answer, event) {
+  clearInterval(state.timerInterval);
+  const q = state.currentQuestions[state.currentQ];
+  const btns = document.querySelectorAll('#options button');
+  btns.forEach(b => b.disabled = true);
+  
+  if (answer === q.correctAnswer) {
+    state.score++;
+    document.getElementById('score').textContent = state.score;
+    event.target.classList.add('correct-bounce');
+    playSound(1200, 0.2);
+    
+    const anim = document.createElement('div');
+    anim.textContent = '+1';
+    anim.className = 'score-up';
+    anim.style.left = '50%';
+    anim.style.top = '40%';
+    document.getElementById('gameScreen').appendChild(anim);
+    setTimeout(() => anim.remove(), 1000);
+    
+    setTimeout(nextQuestion, 800);
+  } else {
+    event.target.classList.add('shake');
+    event.target.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+    event.target.style.color = 'white';
+    playSound(300, 0.3);
+    setTimeout(nextQuestion, 800);
+  }
+}
+
+function nextQuestion() {
+  state.currentQ++;
+  showQuestion();
+}
+
+function endLevel() {
+  clearInterval(state.timerInterval);
+  localStorage.setItem(`level${state.currentLevel}Done`, 'true');
+  playSound(1500, 0.3);
+  
+  document.getElementById('resultTitle').textContent = `关卡${state.currentLevel}完成！`;
+  document.getElementById('finalScore').textContent = state.score;
+  
+  const l1 = localStorage.getItem('level1Done') === 'true';
+  const l2 = localStorage.getItem('level2Done') === 'true';
+  
+  if (state.currentLevel === 1 && !l2) document.getElementById('nextLevelBtn').classList.remove('hidden');
+  if (l1 && l2) document.getElementById('completeMsg').classList.remove('hidden');
+  
+  showScreen('resultScreen');
+}
+
+function goToLevelSelect() {
+  updateLevelStatus();
+  showScreen('levelScreen');
+}
+</script>
+</body>
+</html>
