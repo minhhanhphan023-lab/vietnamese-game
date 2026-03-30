@@ -273,17 +273,34 @@ function endLevel() {
   clearInterval(state.timerInterval);
   localStorage.setItem(`level${state.currentLevel}Done`, 'true');
   playSound(1500, 0.3);
-  
+
+  submitScore(state.playerName, state.currentLevel, state.score);
+
   document.getElementById('resultTitle').textContent = `关卡${state.currentLevel}完成！`;
   document.getElementById('finalScore').textContent = state.score;
-  
+
   const l1 = localStorage.getItem('level1Done') === 'true';
   const l2 = localStorage.getItem('level2Done') === 'true';
-  
+
   if (state.currentLevel === 1 && !l2) document.getElementById('nextLevelBtn').classList.remove('hidden');
   if (l1 && l2) document.getElementById('completeMsg').classList.remove('hidden');
-  
+
   showScreen('resultScreen');
+}
+
+async function submitScore(name, level, score) {
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwY15UmMLKpinovixH3bRvxsIuIx2WZrP2Qk0GBrnfwrpQLXpF9nWzC6yFUdJXJfP48_Q/exec';
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, level, score })
+    });
+    console.log('成绩已提交');
+  } catch (error) {
+    console.error('提交失败:', error);
+  }
 }
 
 function goToLevelSelect() {

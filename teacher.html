@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教师端 - 排行榜</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.6s ease-out; }
+body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+</style>
+</head>
+<body class="p-6">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-8">
+<h1 class="text-5xl font-bold text-white mb-2 drop-shadow-lg">🏆 学生排行榜</h1>
+<p class="text-xl text-white/90">越南语词汇挑战成绩</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- 关卡一排行榜 -->
+<div class="bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-white/20 fade-in">
+<h2 class="text-3xl font-bold text-white mb-6 text-center">关卡一排行榜</h2>
+<div class="bg-white/20 rounded-2xl p-4">
+<table class="w-full text-white">
+<thead>
+<tr class="border-b-2 border-white/30">
+<th class="py-3 text-left">排名</th>
+<th class="py-3 text-left">姓名</th>
+<th class="py-3 text-right">得分</th>
+</tr>
+</thead>
+<tbody id="level1Table">
+<tr><td colspan="3" class="text-center py-8 text-white/60">暂无数据</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- 关卡二排行榜 -->
+<div class="bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-white/20 fade-in">
+<h2 class="text-3xl font-bold text-white mb-6 text-center">关卡二排行榜</h2>
+<div class="bg-white/20 rounded-2xl p-4">
+<table class="w-full text-white">
+<thead>
+<tr class="border-b-2 border-white/30">
+<th class="py-3 text-left">排名</th>
+<th class="py-3 text-left">姓名</th>
+<th class="py-3 text-right">得分</th>
+</tr>
+</thead>
+<tbody id="level2Table">
+<tr><td colspan="3" class="text-center py-8 text-white/60">暂无数据</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div class="text-center mt-8">
+<button onclick="loadRankings()" class="bg-white/20 text-white px-8 py-4 rounded-2xl font-bold text-xl hover:bg-white/30 transition-all hover:scale-105 shadow-xl border border-white/30">
+🔄 刷新数据
+</button>
+</div>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbwY15UmMLKpinovixH3bRvxsIuIx2WZrP2Qk0GBrnfwrpQLXpF9nWzC6yFUdJXJfP48_Q/exec';
+
+async function loadRankings() {
+  try {
+    const response = await fetch(API_URL);
+    const data = await response.json();
+
+    displayRankings(data.level1, 'level1Table');
+    displayRankings(data.level2, 'level2Table');
+  } catch (error) {
+    console.error('加载数据失败:', error);
+  }
+}
+
+function displayRankings(scores, tableId) {
+  const tbody = document.getElementById(tableId);
+  if (!scores || scores.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center py-8 text-white/60">暂无数据</td></tr>';
+    return;
+  }
+  
+  scores.sort((a, b) => b.score - a.score);
+  
+  const html = scores.map((item, index) => {
+    const rank = index + 1;
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+    return `<tr class="border-b border-white/10 hover:bg-white/10 transition">
+      <td class="py-3 text-xl font-bold">${medal}</td>
+      <td class="py-3 font-semibold">${item.name}</td>
+      <td class="py-3 text-right text-xl font-bold text-yellow-300">${item.score}</td>
+    </tr>`;
+  }).join('');
+  
+  tbody.innerHTML = html;
+}
+
+loadRankings();
+setInterval(loadRankings, 30000);
+</script>
+</body>
+</html>
